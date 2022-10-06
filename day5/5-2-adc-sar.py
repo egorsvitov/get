@@ -6,11 +6,17 @@ comp = 4
 troyka = 17
 def decimal2binary(value): 
     return [int(bit) for bit in bin(value)[2:].zfill(8)]
-def adc(value):
-    signal = decimal2binary(value)
-
-    GPIO.output(dac, signal)
-    return signal
+def adc():
+    
+    for i in range(0, 255):
+            signal = decimal2binary(i)
+            GPIO.output(dac, signal)
+            
+            time.sleep(0.001)
+            
+            comp_value = GPIO.input(4)
+            if comp_value == 0:
+                return i/(2**8)*3.3
 
 GPIO.setmode(GPIO.BCM)
 for count in range(0,8):
@@ -22,14 +28,7 @@ GPIO.setup(comp, GPIO.IN)
 
 try:
     while(1):
-        for i in range(0, 255):
-            time.sleep(0.0015)
-            signal = adc(i)
-            voltage = i/(2**8)*3.3
-            comp_value = GPIO.input(4)
-            if comp_value == 0:
-                print(voltage)
-                break
+        print (adc())
 
 except KeyboardInterrupt:
     print('stop')

@@ -12,6 +12,21 @@ def adc(value):
 
     GPIO.output(dac, signal)
     return signal
+def volume():
+    level = 0
+    for i in range(0, 255):
+        signal = adc(i)
+        time.sleep(0.001)
+        voltage = i/(2**8)*3.3
+        comp_value = GPIO.input(4)
+        if comp_value == 0:
+            print(i)
+            for count in range(0, 8):
+                if count < i//32:
+                    GPIO.output(leds[count], 1)
+                else:
+                    GPIO.output(leds[count], 0)
+            break
 
 GPIO.setmode(GPIO.BCM)
 for count in range(0,8):
@@ -25,20 +40,7 @@ for count in range(0, 8):
             GPIO.output(leds[count], 0)
 try:
     while(1):
-        level = 0
-        for i in range(0, 255):
-            time.sleep(0.001)
-            signal = adc(i)
-            voltage = i/(2**8)*3.3
-            comp_value = GPIO.input(4)
-            if comp_value == 0:
-                print(i)
-                for count in range(0, 8):
-                    if count < i//32:
-                        GPIO.output(leds[count], 1)
-                    else:
-                        GPIO.output(leds[count], 0)
-                break
+        volume()
 except KeyboardInterrupt:
     print('stop')
 finally:
