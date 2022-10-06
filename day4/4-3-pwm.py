@@ -1,14 +1,19 @@
 import RPi.GPIO as GPIO
-GPIO.setmode(GPIO.BOARD)
+GPIO.setmode(GPIO.BCM)
 GPIO.setup(3, GPIO.OUT)
-#dac = (10, 9, 11, 5, 6, 13, 19, 26)
 
-#GPIO.output(14, 1)
 p = GPIO.PWM(3, 1000)
 p.start(50)
-while(1):
-    a = int(input())   # use raw_input for Python 2
-    p.ChangeDutyCycle(a)
-input("dasd")
-p.stop()
-GPIO.cleanup()
+
+try:
+    while(1):
+        inp = int(input())
+        print(3.3*inp/100)
+        p.start(inp)
+        
+except KeyboardInterrupt:
+    print("stop")
+finally:
+    p.start(0)
+    GPIO.output(3, 0)
+    GPIO.cleanup()
