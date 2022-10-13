@@ -24,7 +24,7 @@ def volume():
         else:
             GPIO.output(leds[count], 0)
     reports_v.append(voltage)
-    reports_t.append(time.time() - start)
+    reports_t.append(time.time()-start)
     print (voltage)
     return voltage
 
@@ -41,6 +41,9 @@ reports_t = []
 for count in range(0, 8):
             GPIO.output(leds[count], 0)
 try:
+    with open('data.txt', 'w') as f:
+        f.write('\n')
+        f.close()
     start = time.time()
     while(volume() < 3):
         volume()
@@ -48,6 +51,25 @@ try:
     while(volume() > 0.3):
         volume()
     finish = time.time()
+    i = -1
+    for t in reports_t:
+        i += 1
+        with open('data.txt', 'a') as f:
+            f.write(str(t))
+            f.write(' ')
+            f.write(str(reports_v[i]))
+            f.write('\n')
+            f.close()
+    with open('settings.txt', 'w') as f:
+        f.write('Частота дискретизации ')
+        f.write(str(i/(finish-start)))
+        f.write(' ')
+        f.write('Шаг квантования 0.01289 В')
+        f.close()
+    print('Общая продолжительность', (finish-start), 'c')
+    print('Период одного измерения', (finish-start)/i, 'c')
+    print('Частота дискретизации', i/(finish-start),' Гц')
+    print('Шаг квантования 0.01289 В')
     plt.scatter(reports_t, reports_v)
     plt.show()
 except KeyboardInterrupt:
