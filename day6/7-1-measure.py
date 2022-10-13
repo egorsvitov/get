@@ -8,33 +8,32 @@ comp = 4
 troyka = 17
 def decimal2binary(value): 
     return [int(bit) for bit in bin(value)[2:].zfill(8)]
-def adc(value):
-    signal = decimal2binary(value)
-
-    GPIO.output(dac, signal)
-    return signal
-def volume():
-    for i in range(0, 255):
-        GPIO.output(dac, decimal2binary(i))
+def adc():
+    inp = 0
+    for i in range(7, -1, -1):
+        GPIO.output(dac, decimal2binary(inp + 2**(i)))
         time.sleep(0.001)
-        voltage = i/(2**8)*3.3
-        reports_v.append(voltage)
-        reports_t.append(time.time() - start)
-        comp_value = GPIO.input(4)
-        if comp_value == 0:
-            #print(voltage)
-            for count in range(0, 8):
-                if count < i//32:
-                    GPIO.output(leds[count], 1)
-                else:
-                    GPIO.output(leds[count], 0)
-            return voltage
+        if GPIO.input(comp) == 1:
+            inp += 2**(i)
+    return((inp*3.3/(2**8)))
+def volume():
+    voltage = adc()
+    for count in range(0, 8):
+        if count < voltage*8//3.3:
+            GPIO.output(leds[count], 1)
+        else:
+            GPIO.output(leds[count], 0)
+    reports_v.append(voltage)
+    reports_t.append(time.time() - start)
+    print (voltage)
+    return voltage
 
 GPIO.setmode(GPIO.BCM)
 for count in range(0,8):
     GPIO.setup(leds[count], GPIO.OUT)
     GPIO.setup(dac[count], GPIO.OUT)
-GPIO.setup(troyka, GPIO.OUT, initial = 1)
+GPIO.setup(troyka, GPIO.OUT)
+GPIO.output(troyka, 1)
 GPIO.setup(comp, GPIO.IN)
 reports_v = []
 reports_t = []
@@ -45,10 +44,16 @@ try:
     start = time.time()
     while(volume() < 3):
         volume()
-    plt.plot(reports_t, reports_v)
+    GPIO.output(troyka, 0)
+    while(volume() > 0.3):
+        volume()
+    finish = time.time()
+    plt.scatter(reports_t, reports_v)
     plt.show()
 except KeyboardInterrupt:
     print('stop')
+    plt.scatter(reports_t, reports_v)
+    plt.show()
 finally:
     GPIO.output(dac, 0)
     GPIO.output(troyka, 0)
